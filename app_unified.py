@@ -14,6 +14,7 @@ import pandas as pd
 import os
 import traceback
 import tempfile
+import uuid
 
 try:
     import cairosvg
@@ -22,6 +23,7 @@ except Exception:
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'dev-only-secret')
+PROFILE_CACHE: dict[str, list[dict]] = {}
 
 TIMING_APP_URL = os.environ.get('TIMING_APP_URL', '').strip()
 
@@ -974,7 +976,6 @@ def extract_delay_profile_data(log_file):
                     "bandwidth": bw_khz_disp,
                     "bandwidth_mhz": bw_mhz_disp,
                     "scs": scs_disp,
-                    "raw_block": block # 필요시 원본 확인용
                 }
                 
                 for k in keys:
@@ -1661,7 +1662,8 @@ def timing_index():
 # ------------------------- Profile Extractor 라우트 -------------------------
 @app.route("/profile/")
 def profile_index():
-    results = session.get('profile_results', None)
+    cache_key = session.get('profile_results_key')
+    results = PROFILE_CACHE.get(cache_key) if cache_key else None
     error = session.get('profile_error', None)
     return render_template("index_profile.html", results=results, error=error)
 
@@ -1685,12 +1687,19 @@ def profile_analyze():
         analysis_output = extract_delay_profile_data(temp_path)
 
         if "error" in analysis_output:
-            session['profile_results'] = None
+            old_cache_key = session.pop('profile_results_key', None)
+            if old_cache_key:
+                PROFILE_CACHE.pop(old_cache_key, None)
             session['profile_error'] = analysis_output["error"]
             session.modified = True
             return jsonify({'success': False, 'error': analysis_output["error"]})
 
-        session['profile_results'] = analysis_output["data"]
+        old_cache_key = session.pop('profile_results_key', None)
+        if old_cache_key:
+            PROFILE_CACHE.pop(old_cache_key, None)
+        cache_key = uuid.uuid4().hex
+        PROFILE_CACHE[cache_key] = analysis_output["data"]
+        session['profile_results_key'] = cache_key
         session['profile_error'] = None
         session.modified = True
         return jsonify({'success': True, 'count': analysis_output["count"]})
@@ -1705,7 +1714,8 @@ def profile_analyze():
 @app.route("/profile/export", methods=["POST"])
 @app.route("/profile/export/", methods=["POST"])
 def profile_export():
-    results = session.get('profile_results', None)
+    cache_key = session.get('profile_results_key')
+    results = PROFILE_CACHE.get(cache_key) if cache_key else None
     if not results:
         return jsonify({'error': 'No profile results to export'}), 400
 
@@ -1755,7 +1765,9 @@ def profile_export():
 
 @app.route("/profile/clear")
 def profile_clear():
-    session.pop('profile_results', None)
+    cache_key = session.pop('profile_results_key', None)
+    if cache_key:
+        PROFILE_CACHE.pop(cache_key, None)
     session.pop('profile_error', None)
     return redirect(url_for('profile_index'))
 if __name__ == "__main__":
