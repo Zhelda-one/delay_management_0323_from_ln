@@ -11,6 +11,8 @@
 </head>
 <body class="bg-slate-50 min-h-screen">
     <div class="container mx-auto px-4 py-8 max-w-7xl">
+
+        <!-- Header -->
         <div class="flex justify-between items-center mb-8">
             <div>
                 <h1 class="text-3xl font-bold text-slate-800">📋 O-RAN Delay Profile Extractor</h1>
@@ -19,12 +21,13 @@
             <a href="/" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition">Back to Dashboard</a>
         </div>
 
+        <!-- Upload Section -->
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
             <div class="flex flex-col md:flex-row gap-4 items-end">
                 <div class="flex-1 w-full">
-                    <label class="block text-sm font-medium text-slate-700 mb-2">Upload Log File (.txt, .log)</label>
-                    <input type="file" id="fileInput" accept=".txt,.log,.xml" 
-                           class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition"/>
+                    abel class="block text-sm font-medium text-slate-700 mb-2">Upload Log File (.txt, .log, .xml)</label>
+                    <input type="file" id="fileInput" accept=".txt,.log,.xml"
+                        class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition"/>
                 </div>
                 <button onclick="uploadFile()" class="nokia-blue nokia-hover text-white px-6 py-2 rounded-lg font-medium transition shadow-sm w-full md:w-auto">
                     Analyze Profile
@@ -33,9 +36,13 @@
                     Clear
                 </a>
             </div>
+
+            <!-- Loading indicator -->
             <div id="loading" class="hidden mt-4 text-blue-600 text-sm animate-pulse">
-                Processing log file... please wait...
+                ⏳ Processing log file... please wait...
             </div>
+
+            <!-- Error message (from session) -->
             {% if error %}
             <div class="mt-4 p-4 bg-red-50 text-red-700 rounded-lg border border-red-200">
                 <strong>Error:</strong> {{ error }}
@@ -43,15 +50,21 @@
             {% endif %}
         </div>
 
-        {% if results %}
+        <!-- Results Section -->
+        {% if results is not none and results|length > 0 %}
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+
+            <!-- Results Header -->
             <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
                 <h3 class="font-semibold text-slate-700">Extracted Profiles ({{ results|length }})</h3>
+                <span class="text-sm text-green-600 font-medium">✅ Analysis complete</span>
             </div>
+
+            <!-- Download Section -->
             <div class="p-4 border-b border-slate-100 bg-white">
                 <form action="/profile/export" method="post" class="flex flex-col md:flex-row gap-3 md:items-end">
                     <div class="w-full md:w-80">
-                        <label for="profile_id" class="block text-sm font-medium text-slate-700 mb-2">Select bandwidth to download (MHz)</label>
+                        abel for="profile_id" class="block text-sm font-medium text-slate-700 mb-2">Select bandwidth to download (MHz)</label>
                         <select id="profile_id" name="profile_id" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
                             {% for row in results %}
                             <option value="{{ row.id }}">{{ row.bandwidth_mhz }} (SCS: {{ row.scs }})</option>
@@ -63,6 +76,8 @@
                     </button>
                 </form>
             </div>
+
+            <!-- Results Table -->
             <div class="overflow-x-auto">
                 <table class="w-full text-sm text-left text-slate-600">
                     <thead class="text-xs text-slate-700 uppercase bg-slate-100">
@@ -102,11 +117,24 @@
                 </table>
             </div>
         </div>
+
+        <!-- ★ FIX: 분석 성공했지만 결과가 0건인 경우 -->
+        {% elif results is not none and results|length == 0 %}
+        <div class="text-center py-12 bg-yellow-50 rounded-xl border border-yellow-200">
+            <p class="text-yellow-700 font-medium">⚠️ No delay profile data found in the uploaded file.</p>
+            <p class="text-yellow-600 text-sm mt-2">
+                Make sure the log file contains de>&lt;rpc-reply&gt;</code> blocks with de>bandwidth-scs-delay-state</code> entries.
+            </p>
+        </div>
+
+        <!-- 아직 파일을 업로드하지 않은 초기 상태 -->
         {% elif not error %}
         <div class="text-center py-12 text-slate-400 bg-white rounded-xl border border-dashed border-slate-300">
-            <p>Upload a Netconf log file to view Delay Profiles.</p>
+            <p class="text-lg">📂 Upload a Netconf log file to view Delay Profiles.</p>
+            <p class="text-sm mt-2">Supported formats: .txt, .log, .xml</p>
         </div>
         {% endif %}
+
     </div>
 
     <script>
@@ -130,15 +158,18 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
+                    // 분석 성공 시 reload → results 표시
                     window.location.reload();
                 } else {
-                    alert('Error: ' + (data.error || 'Unknown error'));
-                    document.getElementById('loading').classList.add('hidden');
+                    // ★ FIX: 에러 시에도 reload하여 세션의 error 메시지를 HTML에 표시
+                    // (기존: alert만 뜨고 페이지 갱신 안 됨)
+                    console.error('Analysis error:', data.error);
+                    window.location.reload();
                 }
             })
             .catch(error => {
-                console.error('Error:', error);
-                alert('Upload failed.');
+                console.error('Fetch error:', error);
+                alert('Upload failed. Please check your network connection.');
                 document.getElementById('loading').classList.add('hidden');
             });
         }
