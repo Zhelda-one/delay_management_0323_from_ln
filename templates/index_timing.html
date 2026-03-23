@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Timing Calculation Tool</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f5f7fb;
+      color: #111827;
+    }
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      background: #1f2937;
+      color: #fff;
+    }
+    .topbar h1 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+    }
+    .top-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .back-btn {
+      display: inline-block;
+      padding: 8px 14px;
+      background: #2563eb;
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+    .page {
+      padding: 18px;
+      max-width: 1800px;
+      margin: 0 auto;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1.15fr 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+    .card {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+      margin-bottom: 16px;
+    }
+    .card h3 {
+      margin: 0 0 12px 0;
+      font-size: 18px;
+    }
+    .muted {
+      color: #6b7280;
+      font-size: 13px;
+    }
+    .info {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+      padding: 12px 14px;
+      border-radius: 10px;
+      margin-bottom: 14px;
+    }
+    .error {
+      background: #fff1f2;
+      color: #b91c1c;
+      border: 1px solid #fecdd3;
+      padding: 12px 14px;
+      border-radius: 10px;
+      margin-bottom: 14px;
+    }
+    .warnbox {
+      border: 1px solid #fca5a5;
+      background: #fff7f7;
+    }
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    button, .btn-link {
+      border: none;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 14px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+    }
+    button.primary, .btn-link.primary { background: #2563eb; color: #fff; }
+    button.success, .btn-link.success { background: #16a34a; color: #fff; }
+    button.warn, .btn-link.warn { background: #d97706; color: #fff; }
+    button.secondary, .btn-link.secondary { background: #6b7280; color: #fff; }
+    button:hover, .btn-link:hover { opacity: 0.95; }
+
+    label {
+      display: block;
+      font-size: 13px;
+      color: #374151;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+    input[type="number"],
+    input[type="file"],
+    select {
+      width: 100%;
+      padding: 9px 10px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 14px;
+      background: #fff;
+      margin-bottom: 12px;
+    }
+    .cfg-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(220px, 1fr));
+      gap: 12px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      background: #fff;
+    }
+    th, td {
+      border: 1px solid #e5e7eb;
+      padding: 8px 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      background: #f9fafb;
+      font-weight: 700;
+    }
+    .delay-input {
+      width: 140px;
+      margin: 0;
+    }
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #4338ca;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .section-title {
+      margin: 14px 0 8px 0;
+      font-size: 16px;
+      font-weight: 700;
+    }
+    pre {
+      background: #0f172a;
+      color: #e5e7eb;
+      padding: 12px;
+      border-radius: 10px;
+      overflow: auto;
+      font-size: 12px;
+    }
+    .result-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(280px, 1fr));
+      gap: 14px;
+    }
+    .result-box {
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 12px;
+      background: #fafafa;
+    }
+    .result-box h4 {
+      margin: 0 0 8px 0;
+      font-size: 15px;
+    }
+    .result-table td:first-child {
+      width: 55%;
+      font-weight: 600;
+      background: #f9fafb;
+    }
+    .tiny {
+      font-size: 12px;
+      color: #6b7280;
+    }
+    @media (max-width: 1200px) {
+      .grid { grid-template-columns: 1fr; }
+      .cfg-grid { grid-template-columns: repeat(2, minmax(220px, 1fr)); }
+      .result-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 760px) {
+      .cfg-grid { grid-template-columns: 1fr; }
+      .topbar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <h1>Timing Calculation Tool</h1>
+    <div class="top-actions">
+      <a href="/" class="back-btn">Back to Dashboard</a>
+    </div>
+  </div>
+
+  <div class="page">
+    {% if error %}<div class="error">{{ error }}</div>{% endif %}
+    {% if notice %}<div class="info">{{ notice }}</div>{% endif %}
+    {% if compute_error %}<div class="error">Compute failed: {{ compute_error }}</div>{% endif %}
+
+  <div class="card" style="margin-bottom:12px;">
+    <label style="display:flex;align-items:center;gap:8px;font-weight:600;margin:0;">
+      <input type="checkbox" name="debug_mode" value="on" {% if debug_mode %}checked{% endif %}>
+      Enable Debug Mode
+    </label>
+  </div>
+
+    <div class="grid">
+      <div>
+        <form method="post" action="/timing/update" enctype="multipart/form-data">
+          <div class="card">
+            <h3>1) Upload DelayData (.xlsx)</h3>
+            <label>Upload any .xlsx with columns: Category / Metric / Value</label>
+            <input type="file" name="file" accept=".xlsx">
+
+            <label>Apply to</label>
+            <select name="target">
+              <option value="ODU">ODU</option>
+              <option value="ORU">ORU</option>
+              <option value="Both" selected>Both</option>
+            </select>
+
+            <div class="btn-row">
+              <button class="primary" name="action" value="upload" type="submit">Update DelayData</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>2) Calibration</h3>
+            <div class="muted" style="margin-bottom:10px;">
+              Current mode: <span class="badge">{{ cal_mode }}</span>
+            </div>
+            <div class="btn-row">
+              <button class="primary" name="action" value="cal_15_30" type="submit">Apply 15/30km</button>
+              <button class="success" name="action" value="cal_40" type="submit">Apply 40km</button>
+              <button class="warn" name="action" value="cal_minimum" type="submit">Apply minimum</button>
+              <button class="secondary" name="action" value="cal_reset" type="submit">Calibration Reset</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>3) RU/DU Config (Master)</h3>
+            <div class="muted" style="margin-bottom:12px;">
+              t12_max/min are entered as positive values here and stored internally as negative values.
+            </div>
+
+            <div class="cfg-grid">
+              <div>
+                <label>t2a_min_up (E4)</label>
+                <input type="number" step="any" name="t2a_min_up" value="{{ cfg.t2a_min_up }}">
+              </div>
+              <div>
+                <label>t2a_max_up (E5)</label>
+                <input type="number" step="any" name="t2a_max_up" value="{{ cfg.t2a_max_up }}">
+              </div>
+              <div>
+                <label>tcp_adv_dl (E8)</label>
+                <input type="number" step="any" name="tcp_adv_dl" value="{{ cfg.tcp_adv_dl }}">
+              </div>
+              <div>
+                <label>ta3_min (E9)</label>
+                <input type="number" step="any" name="ta3_min" value="{{ cfg.ta3_min }}">
+              </div>
+              <div>
+                <label>ta3_max (E10)</label>
+                <input type="number" step="any" name="ta3_max" value="{{ cfg.ta3_max }}">
+              </div>
+              <div>
+                <label>t2a_min_cp_ul (E11)</label>
+                <input type="number" step="any" name="t2a_min_cp_ul" value="{{ cfg.t2a_min_cp_ul }}">
+              </div>
+              <div>
+                <label>t2a_max_cp_ul (E12)</label>
+                <input type="number" step="any" name="t2a_max_cp_ul" value="{{ cfg.t2a_max_cp_ul }}">
+              </div>
+              <div>
+                <label>t12_max (µs) (enter positive)</label>
+                <input type="number" step="any" name="t12_max_ui" value="{{ t12_max_ui }}">
+              </div>
+              <div>
+                <label>t12_min (µs) (enter positive)</label>
+                <input type="number" step="any" name="t12_min_ui" value="{{ t12_min_ui }}">
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>DelayData (internal table)</h3>
+            <div class="muted" style="margin-bottom:6px;">
+              ODU 8 rows + ORU 8 rows. Manual edit is also supported.
+            </div>
+            <div class="muted" style="margin-bottom:10px;">
+              Filled values: {{ filled_count }}/{{ total_count }}
+            </div>
+
+            <div style="overflow:auto;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Node</th>
+                    <th>Category</th>
+                    <th>Metric</th>
+                    <th>Value(µs)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for row in delay_rows %}
+                  <tr>
+                    <td>{{ loop.index0 }}</td>
+                    <td>{{ row['Node'] }}</td>
+                    <td>{{ row['Category'] }}</td>
+                    <td>{{ row['Metric'] }}</td>
+                    <td>
+                      <input
+                        class="delay-input"
+                        type="number"
+                        step="any"
+                        name="delay_{{ loop.index0 }}"
+                        value="{{ '' if row['Value(µs)'] is none else row['Value(µs)'] }}"
+                      >
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+
+            <div class="btn-row" style="margin-top:14px;">
+              <button class="primary" name="action" value="update" type="submit">Update / Compute</button>
+            </div>
+          </div>
+        </form>
+
+        {% if missing_rows and missing_rows|length > 0 %}
+        <div class="card warnbox">
+          <h3 style="color:#991b1b;">Missing DelayData Rows</h3>
+          <ul style="margin:8px 0 0 18px;">
+            {% for row in missing_rows %}
+              <li>{{ row.Node }} / {{ row.Category }} / {{ row.Metric }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+
+        {% if debug_mode and debug_info %}
+        <div class="card">
+          <h3>Debug Panel</h3>
+          <div class="muted" style="margin-bottom:8px;">
+            Server-side snapshot of the latest /timing/update request
+          <h4 class="section-title">Upload Preview</h4>
+          <pre>{{ debug_info.upload_preview | tojson(indent=2) }}</pre>
+          </div>
+
+          <table>
+            <tbody>
+              <tr><th style="width:220px;">Action</th><td>{{ debug_info.action }}</td></tr>
+              <tr><th>Target</th><td>{{ debug_info.target }}</td></tr>
+              <tr><th>Uploaded filename</th><td>{{ debug_info.uploaded_filename }}</td></tr>
+              <tr><th>Before filled</th><td>{{ debug_info.before_filled }}</td></tr>
+              <tr><th>After filled</th><td>{{ debug_info.after_filled }}</td></tr>
+              {% if debug_info.exception %}
+              <tr><th>Exception</th><td style="color:#991b1b;">{{ debug_info.exception }}</td></tr>
+              {% endif %}
+            </tbody>
+          </table>
+
+          <h4 class="section-title">Form Keys</h4>
+          <pre>{{ debug_info.form_keys | tojson(indent=2) }}</pre>
+
+          <h4 class="section-title">Delay Form Values</h4>
+          <pre>{{ debug_info.delay_form_values | tojson(indent=2) }}</pre>
+
+          <h4 class="section-title">Missing Before</h4>
+          <pre>{{ debug_info.before_missing | tojson(indent=2) }}</pre>
+
+          <h4 class="section-title">Missing After</h4>
+          <pre>{{ debug_info.after_missing | tojson(indent=2) }}</pre>
+        </div>
+        {% endif %}
+      </div>
+
+      <div>
+        <div class="card">
+          <h3>Results</h3>
+          {% if result %}
+            <div class="result-grid">
+              {% if result.dl is defined %}
+              <div class="result-box">
+                <h4>DL Result</h4>
+                <table class="result-table">
+                  <tbody>
+                    {% for k, v in result.dl.items() %}
+                    <tr>
+                      <td>{{ k }}</td>
+                      <td>{{ v }}</td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+              {% endif %}
+
+              {% if result.ul is defined %}
+              <div class="result-box">
+                <h4>UL Result</h4>
+                <table class="result-table">
+                  <tbody>
+                    {% for k, v in result.ul.items() %}
+                    <tr>
+                      <td>{{ k }}</td>
+                      <td>{{ v }}</td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+              {% endif %}
+            </div>
+
+            <div class="btn-row" style="margin-top:14px;">
+              <a href="/timing/export/dl" class="btn-link primary">Download DL xlsx</a>
+              <a href="/timing/export/ul" class="btn-link success">Download UL xlsx</a>
+            </div>
+          {% else %}
+            <div class="muted">No result yet.</div>
+          {% endif %}
+        </div>
+
+        <div class="card">
+          <h3>Notes</h3>
+          <ul class="tiny" style="padding-left:18px; line-height:1.7;">
+            <li>All 16 DelayData values must be filled for compute to succeed.</li>
+            <li>Upload file should contain columns: <b>Category</b>, <b>Metric</b>, <b>Value</b>.</li>
+            <li>Upload applies 8 parsed rows to ODU, ORU, or Both.</li>
+            <li>t12_max/t12_min are entered as positive values in UI and stored internally as negative.</li>
+            <li>Enable Debug Mode to inspect the actual posted form values and missing rows.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

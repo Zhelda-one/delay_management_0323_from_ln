@@ -1,0 +1,52 @@
+<table>
+  <thead>
+    <tr>
+      <th>Check</th>
+      <th>Measured (ns)</th>
+      <th>Expected (ns)</th>
+      <th>Result</th>
+    </tr>
+  </thead>
+  <tbody>
+    {# 각 윈도우당 Start / End 두 줄씩 = 총 8줄 #}
+    {% for ev in evals %}
+      {# Start row #}
+      <tr>
+        <td>{{ ev.label }} — Start</td>
+        <td>{{ ev.ms|fmt }}</td>
+        <td>{{ ev.es|fmt }}</td>
+        <td>
+          {{ ev.start }}
+          {% if ev.start == 'PASS' %}
+            <span class="lamp pass"></span>
+          {% elif ev.start == 'EARLY' %}
+            <span class="lamp warn"></span>
+          {% elif ev.start == 'LATE' %}
+            <span class="lamp fail"></span>
+          {% else %}
+            <span class="lamp muted"></span>
+          {% endif %}
+        </td>
+      </tr>
+
+      {# End row #}
+      <tr>
+        <td>{{ ev.label }} — End</td>
+        <td>{{ ev.me|fmt }}</td>
+        <td>{{ ev.ee|fmt }}</td>
+        <td>
+          {{ ev.end }}
+          {% if ev.end == 'PASS' %}
+            <span class="lamp pass"></span>
+          {% elif ev.end == 'EARLY' %}
+            <span class="lamp warn"></span>
+          {% elif ev.end == 'LATE' %}
+            <span class="lamp fail"></span>
+          {% else %}
+            <span class="lamp muted"></span>
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>

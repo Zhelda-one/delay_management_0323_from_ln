@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Delay Analyzer Dashboard - RL1 PD US Poc & Val Team</title>
+  <style>
+    body {
+      font-family: system-ui, Segoe UI, Roboto, Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f8fafc;
+      color: #0f172a;
+      position: relative;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      text-align: center;
+      padding-bottom: 80px;
+    }
+    h1 {
+      color: #1e293b;
+      margin-bottom: 40px;
+    }
+    .nav-cards {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .nav-card {
+      background: white;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 30px;
+      width: 250px;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .nav-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+      border-color: #3b82f6;
+    }
+    .nav-card h2 {
+      margin: 0 0 10px 0;
+      color: #1e40af;
+    }
+    .nav-card p {
+      margin: 0;
+      color: #64748b;
+      font-size: 14px;
+    }
+    .feature-list {
+      text-align: left;
+      margin-top: 15px;
+      font-size: 12px;
+    }
+    .feature-list li {
+      margin-bottom: 5px;
+    }
+    .bba-card h2 {
+      color: #7c3aed;
+    }
+    .bba-card:hover {
+      border-color: #7c3aed;
+    }
+    .external-link::after {
+      content: " ↗";
+      font-size: 0.9em;
+      opacity: 0.6;
+    }
+
+    /* 노키아 로고 스타일 - 이미지 버전 */
+    .nokia-logo {
+      position: fixed;
+      bottom: 20px;
+      right: 30px;
+      opacity: 0.8;
+      transition: opacity 0.3s ease;
+    }
+    .nokia-logo:hover {
+      opacity: 1;
+    }
+    .nokia-logo img {
+      height: 50px;
+      width: auto;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📊 Delay Analyzer Dashboard - RD RL1 PD US EngSupport & PoC </h1>
+    <div class="nav-cards">
+      <a href="/dl/" class="nav-card">
+        <h2>📡 Downlink Analyzer</h2>
+        <p>DL Delay Analysis & Timing Windows</p>
+        <ul class="feature-list">
+          <li>O-DU/O-RU Timing Analysis</li>
+          <li>C-Plane/U-Plane Windows</li>
+          <li>Real-time SVG Visualization</li>
+          <li>PDF Report Generation</li>
+        </ul>
+      </a>
+      <a href="/ul/" class="nav-card">
+        <h2>🛰️ Uplink Analyzer</h2>
+        <p>UL Delay Analysis & Timing Windows</p>
+        <ul class="feature-list">
+          <li>UL Timing Window Analysis</li>
+          <li>Multi-plane Signal Checking</li>
+          <li>Interactive Diagrams</li>
+          <li>Export Capabilities</li>
+        </ul>
+      </a>
+      <a href="/ecpri/" class="nav-card">
+        <h2>📈 eCPRI Analyzer</h2>
+        <p>eCPRI Data Analysis & Excel Export</p>
+        <ul class="feature-list">
+          <li>CSV File Processing</li>
+          <li>Delay Statistics Analysis</li>
+          <li>Excel Export Format</li>
+          <li>UL/DL Plane Analysis</li>
+        </ul>
+      </a>
+      <a href="/timing/" class="nav-card">
+        <h2>⏱️ Timing Calculation</h2>
+        <p>DelayData upload, calibration, and DL/UL computation</p>
+        <ul class="feature-list">
+          <li>DelayData Excel Upload</li>
+          <li>Calibration Controls</li>
+          <li>Integrated DelayData Editor</li>
+          <li>DL/UL Excel Export</li>
+        </ul>
+      </a>
+      <a href="/profile/" class="nav-card">
+        <h2>📋 Profile Extractor</h2>
+        <p>O-RAN Delay Profile Parser</p>
+        <ul class="feature-list">
+          <li>Netconf Log Parsing</li>
+          <li>RPC-Reply Extraction</li>
+          <li>Delay Parameter Table</li>
+          <li>Bandwidth/SCS Parsing</li>
+        </ul>
+      </a>
+      <a href="/static/BBA_MASTER/index.html" target="_blank" class="nav-card bba-card external-link">
+        <h2>🔗 BBA Master</h2>
+        <p>IQ / eCPRI analysis</p>
+        <ul class="feature-list">
+          <li>BBA Parameter Settings</li>
+          <li>Master Configuration</li>
+          <li>System Integration</li>
+          <li>Advanced Controls</li>
+        </ul>
+      </a>
+    </div>
+  </div>
+
+  <!-- 노키아 로고 (이미지) -->
+  <div class="nokia-logo">
+    <img src="/static/Nokia-logo.png" alt="Nokia">
+  </div>
+</body>
+</html>

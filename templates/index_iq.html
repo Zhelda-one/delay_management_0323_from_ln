@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>eCPRI Analyzer</title>
+  <style>
+    :root{
+      --line:#cfd8e3;
+      --bg:#f8fafc;
+      --panel:#ffffff;
+      --ink:#0f172a;
+      --muted:#64748b;
+      --btn:#f8fafc;
+      --btn-border:#cbd5e1;
+      --primary:#2563eb;
+    }
+    *{box-sizing:border-box;}
+    body{
+      margin:0;
+      font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;
+      background:var(--bg);
+      color:var(--ink);
+    }
+    
+    /* 탭 네비게이션 스타일 - 통일 */
+    .tab-nav {
+      display: flex;
+      background: #f1f5f9;
+      border-bottom: 1px solid #cbd5e1;
+      padding: 0 12px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 1000;
+      height: 44px;
+    }
+    .tab-nav a {
+      padding: 12px 20px;
+      text-decoration: none;
+      color: #64748b;
+      font-weight: 600;
+      border-bottom: 2px solid transparent;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      transition: all 0.2s ease;
+    }
+    .tab-nav a.active {
+      color: #2563eb;
+      border-bottom-color: #2563eb;
+      background: white;
+    }
+    .tab-nav a:hover {
+      color: #1d4ed8;
+      background: #f8fafc;
+    }
+    
+    .container {
+      margin-top: 44px;
+      padding: 20px;
+      max-width: 1200px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    
+    .card{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:4px;
+      margin-bottom: 20px;
+    }
+    .head{
+      font-weight:600;
+      padding:12px 16px;
+      border-bottom:1px solid var(--line);
+      background:#f1f5f9;
+      font-size: 16px;
+    }
+    .body{
+      padding:16px;
+    }
+    
+    /* 파일 업로드 영역 */
+    .upload-section {
+      display: flex;
+      gap: 12px;
+      align-items: flex-end;
+      margin-bottom: 20px;
+    }
+    .upload-section input[type="file"] {
+      flex: 1;
+      padding: 8px;
+      border: 1px solid var(--btn-border);
+      border-radius: 4px;
+    }
+    .upload-section button {
+      padding: 8px 16px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .upload-section button:hover {
+      background: #1d4ed8;
+    }
+    .upload-section button:disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
+    }
+    
+    /* 상태 표시줄 */
+    .status-bar {
+      padding: 12px 16px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+    .status-info {
+      background: #dbeafe;
+      color: #1e40af;
+      border: 1px solid #93c5fd;
+    }
+    .status-success {
+      background: #dcfce7;
+      color: #166534;
+      border: 1px solid #86efac;
+    }
+    .status-error {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fca5a5;
+    }
+    
+    /* 기본 통계 */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .stat-card {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 16px;
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 24px;
+      font-weight: bold;
+      color: var(--primary);
+      margin-bottom: 4px;
+    }
+    .stat-label {
+      font-size: 12px;
+      color: #64748b;
+      text-transform: uppercase;
+    }
+    
+    /* 결과 테이블 */
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 14px;
+    }
+    th, td {
+      border: 1px solid var(--line);
+      padding: 8px 12px;
+      text-align: left;
+    }
+    th {
+      background: #f8fafc;
+      font-weight: 600;
+    }
+    tr:nth-child(even) {
+      background: #f8fafc;
+    }
+    
+    /* 버튼 행 */
+    .button-row {
+      display: flex;
+      gap: 8px;
+      margin: 16px 0;
+    }
+    .button-row button {
+      padding: 8px 16px;
+      border: 1px solid var(--btn-border);
+      background: var(--btn);
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .button-row button.primary {
+      background: var(--primary);
+      color: white;
+      border-color: #1d4ed8;
+    }
+    
+    /* 로딩 스피너 */
+    .spinner {
+      border: 2px solid #f3f3f3;
+      border-top: 2px solid var(--primary);
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+      margin-right: 8px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* 결과 테이블 스타일 */
+    .results-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .results-table th {
+      background: #e2e8f0;
+      font-weight: 600;
+    }
+    .results-table td, .results-table th {
+      border: 1px solid #cbd5e1;
+      padding: 8px 12px;
+      text-align: left;
+    }
+    .results-table tr:nth-child(even) {
+      background: #f8fafc;
+    }
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    /* Home 버튼 스타일 */
+    .home-button {
+      position: fixed;
+      top: 55px;
+      right: 20px;
+      z-index: 1000;
+      background: #3b82f6;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .home-button:hover {
+      background: #2563eb;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    }
+    .home-button::after {
+      content: "🏠";
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Home 버튼 -->
+  <a href="/" class="home-button">Home</a>
+
+
+  
+
+
+  
+
+
+  
+
+
+  
+
+
+  
+
+
+  
+
+
+  
+
+
+  
+
+
+  <!-- 탭 네비게이션 -->
+  <div class="tab-nav">
+    <a href="/dl/">Downlink</a>
+    <a href="/ul/">Uplink</a>
+    <a href="/ecpri/" class="active">eCPRI Analyzer</a>
+  </div>
+
+  <div class="container">
+    <!-- 파일 업로드 섹션 -->
+    <div class="card">
+      <div class="head">File Upload</div>
+      <div class="body">
+        <div class="upload-section">
+          <input type="file" id="fileInput" accept=".csv">
+          <button id="analyzeBtn" onclick="analyzeFile()">
+            <span id="analyzeText">🚀 Analyze Data</span>
+            <span id="analyzeSpinner" class="spinner" style="display: none;"></span>
+          </button>
+        </div>
+        <div style="font-size: 12px; color: #64748b;">
+          Supported format: CSV with semicolon delimiter. Required columns: ecpri.dataDir, ecpri.message, ecpri.rtcId, eCpriDelayPtpUs
+        </div>
+      </div>
+    </div>
+
+    <!-- 상태 표시줄 -->
+    <div id="statusBar" class="status-bar status-info" style="display: none;">
+      <span id="statusText">Ready to analyze</span>
+    </div>
+
+    <!-- 기본 통계 -->
+    <div id="basicStats" style="display: none;">
+      <div class="card">
+        <div class="head">Basic Statistics</div>
+        <div class="body">
+          <div class="stats-grid" id="statsContent"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- eCPRI 분석 결과 -->
+    <div id="ecpriResults" style="display: none;">
+      <div class="card">
+        <div class="head">eCPRI Delay Analysis Results</div>
+        <div class="body">
+          <table class="results-table">
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th>Metric</th>
+                <th>Value</th>
+              </tr>
+            </thead>
+            <tbody id="ecpriResultsBody">
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 결과 내보내기 -->
+    <div class="button-row">
+      <button class="primary" onclick="exportResults()" id="exportBtn" disabled>💾 Export to Excel</button>
+    </div>
+  </div>
+
+  <script>
+    let currentResults = null;
+
+    function analyzeFile() {
+      const fileInput = document.getElementById('fileInput');
+      const analyzeBtn = document.getElementById('analyzeBtn');
+      const analyzeText = document.getElementById('analyzeText');
+      const analyzeSpinner = document.getElementById('analyzeSpinner');
+      const statusBar = document.getElementById('statusBar');
+      const statusText = document.getElementById('statusText');
+
+      if (!fileInput.files.length) {
+        showStatus('Please select a file first.', 'error');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('file', fileInput.files[0]);
+
+      // UI 상태 업데이트
+      analyzeBtn.disabled = true;
+      analyzeText.textContent = 'Analyzing...';
+      analyzeSpinner.style.display = 'inline-block';
+      showStatus('Analyzing file... This may take a moment.', 'info');
+
+      // 분석 요청
+      fetch('/ecpri/analyze', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          currentResults = data;
+          displayResults(data);
+          showStatus('Analysis completed successfully!', 'success');
+          document.getElementById('exportBtn').disabled = false;
+        } else {
+          showStatus('Error: ' + data.error, 'error');
+        }
+      })
+      .catch(error => {
+        showStatus('Analysis failed: ' + error, 'error');
+      })
+      .finally(() => {
+        analyzeBtn.disabled = false;
+        analyzeText.textContent = '🚀 Analyze Data';
+        analyzeSpinner.style.display = 'none';
+      });
+    }
+
+    function displayResults(data) {
+      // 기본 통계 표시
+      if (data.basic_stats) {
+        displayBasicStats(data.basic_stats);
+      }
+      
+      // eCPRI 결과 표시
+      if (data.results && typeof data.results === 'object' && !data.results.error) {
+        displayEcpriResults(data.results);
+      }
+      
+      // 오류 표시
+      if (data.results && data.results.error) {
+        showStatus('Error: ' + data.results.error, 'error');
+      }
+    }
+
+    function displayBasicStats(stats) {
+      const statsDiv = document.getElementById('basicStats');
+      const statsContent = document.getElementById('statsContent');
+      
+      statsContent.innerHTML = `
+        <div class="stat-card">
+          <div class="stat-value">${stats.total_rows.toLocaleString()}</div>
+          <div class="stat-label">Total Rows</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">${stats.columns.length}</div>
+          <div class="stat-label">Columns</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">${Object.keys(stats.data_types).length}</div>
+          <div class="stat-label">Data Types</div>
+        </div>
+      `;
+      
+      statsDiv.style.display = 'block';
+    }
+
+    function displayEcpriResults(results) {
+      const ecpriDiv = document.getElementById('ecpriResults');
+      const ecpriBody = document.getElementById('ecpriResultsBody');
+      
+      let html = '';
+      const categories = [
+        'User plane DL', 
+        'Control Plane DL', 
+        'Control Plane UL', 
+        'User plane UL'
+      ];
+      
+      categories.forEach(category => {
+        if (results[category]) {
+          const data = results[category];
+          
+          // Min Delay 행
+          const minValue = typeof data.min === 'number' ? data.min.toFixed(2) : data.min;
+          html += `
+            <tr>
+              <td>${category}</td>
+              <td>Min Delay (µs)</td>
+              <td>${minValue}</td>
+            </tr>
+          `;
+          
+          // Max Delay 행
+          const maxValue = typeof data.max === 'number' ? data.max.toFixed(2) : data.max;
+          html += `
+            <tr>
+              <td>${category}</td>
+              <td>Max Delay (µs)</td>
+              <td>${maxValue}</td>
+            </tr>
+          `;
+        }
+      });
+      
+      ecpriBody.innerHTML = html;
+      ecpriDiv.style.display = 'block';
+    }
+
+    function showStatus(message, type) {
+      const statusBar = document.getElementById('statusBar');
+      const statusText = document.getElementById('statusText');
+      
+      statusBar.className = `status-bar status-${type}`;
+      statusText.textContent = message;
+      statusBar.style.display = 'block';
+    }
+
+    function exportResults() {
+      if (!currentResults) return;
+      
+      fetch('/ecpri/export', {
+        method: 'POST'
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Export failed');
+        }
+        return response.blob();
+      })
+      .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = `ecpri_analysis_${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+      })
+      .catch(error => {
+        showStatus('Export failed: ' + error, 'error');
+      });
+    }
+
+    // 페이지 로드 시 세션에 저장된 결과가 있으면 표시
+    window.addEventListener('load', function() {
+      {% if results %}
+        currentResults = {
+          results: {{ results | tojson }},
+          basic_stats: {{ basic_stats | tojson }},
+          success: {{ (error is none) | tojson }}
+        };
+        displayResults(currentResults);
+        document.getElementById('exportBtn').disabled = false;
+      {% endif %}
+      
+      {% if error %}
+        showStatus('Error: ' + {{ error | tojson }}, 'error');
+      {% endif %}
+    });
+  </script>
+</body>
+</html>

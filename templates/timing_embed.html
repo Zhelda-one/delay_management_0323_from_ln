@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Timing Calculation</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f7fb;
+      margin: 0;
+      padding: 0;
+      color: #1f2d3d;
+    }
+    .wrap {
+      max-width: 900px;
+      margin: 60px auto;
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      padding: 36px;
+      text-align: center;
+    }
+    h1 {
+      margin-top: 0;
+      color: #0b5cab;
+    }
+    p {
+      font-size: 16px;
+      line-height: 1.6;
+      color: #4a5568;
+    }
+    .url-box {
+      margin: 18px 0 28px;
+      padding: 12px 14px;
+      background: #f7fafc;
+      border: 1px solid #d9e2ec;
+      border-radius: 8px;
+      word-break: break-all;
+      font-size: 14px;
+      color: #2d3748;
+    }
+    .actions {
+      display: flex;
+      justify-content: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+    .btn {
+      display: inline-block;
+      padding: 12px 20px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: 0.2s ease;
+    }
+    .btn-primary {
+      background: #0b5cab;
+      color: #fff;
+    }
+    .btn-primary:hover {
+      background: #084a8c;
+    }
+    .btn-secondary {
+      background: #edf2f7;
+      color: #1f2d3d;
+      border: 1px solid #cbd5e0;
+    }
+    .btn-secondary:hover {
+      background: #e2e8f0;
+    }
+    .note {
+      margin-top: 24px;
+      font-size: 13px;
+      color: #718096;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Timing Calculation Tool</h1>
+    <p>
+      The Timing Calculation Tool runs as a separate application.
+      Click the button below to open it directly in a new tab.
+    </p>
+
+    <div class="url-box">
+      {{ timing_url }}
+    </div>
+
+    <div class="actions">
+      <a class="btn btn-primary" href="{{ timing_url }}" target="_blank" rel="noopener noreferrer">
+        Open Timing Tool
+      </a>
+      <a class="btn btn-secondary" href="/">
+        Back to Dashboard
+      </a>
+    </div>
+
+    <div class="note">
+      This launcher page avoids iframe-related upload issues.
+    </div>
+  </div>
+</body>
+</html>

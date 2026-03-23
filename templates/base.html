@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DL Delay Management (Flask)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/htmx.org@1.9.12" defer></script>
+    <style>
+      :root{--b:#0f172a;--mut:#64748b;--line:#e2e8f0;--bg:#f8fafc}
+      *{box-sizing:border-box;font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial}
+      body{margin:0;background:var(--bg);color:var(--b)}
+      header{border-bottom:1px solid var(--line);background:#fff}
+      .container{max-width:1120px;margin:0 auto;padding:16px 24px}
+      .card{background:#fff;border-radius:16px;box-shadow:0 1px 2px rgba(0,0,0,.06);padding:16px}
+      .grid{display:grid;gap:24px}
+      .grid-12{grid-template-columns:repeat(12,minmax(0,1fr))}
+      .btn{display:inline-flex;align-items:center;justify-content:center;border:1px solid #cbd5e1;padding:8px 12px;border-radius:12px;font-size:14px;background:#fff;cursor:pointer}
+      .btn:hover{background:#f8fafc}
+      .btn-primary{background:#0f172a;color:#fff;border-color:#0f172a}
+      .btn-primary:hover{background:#111827}
+      .input{width:100%;border:1px solid #cbd5e1;border-radius:12px;padding:8px 12px;font-size:14px;outline:none}
+      .input:focus{box-shadow:0 0 0 3px rgba(148,163,184,.35)}
+      .label{font-size:13px;color:#475569}
+      table{width:100%;border-collapse:collapse}
+      th,td{border:1px solid #e5e7eb;padding:6px 8px;font-size:13px}
+      th{background:#f3f4f6;color:#64748b;text-align:left}
+      pre{background:#f1f5f9;border-radius:12px;padding:12px;font-size:12px;white-space:pre-wrap;max-height:224px;overflow:auto}
+      .pill{display:inline-flex;align-items:center;gap:6px}
+      .lamp{width:14px;height:14px;border-radius:9999px;display:inline-block}
+      .lamp.pass{background:#22c55e}
+      .lamp.fail{background:#ef4444}
+      .lamp.partial{background:#f97316}
+      .lamp.na{background:#cbd5e1}
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="container" style="display:flex;align-items:center;justify-content:space-between">
+        <h1 style="font-size:20px;font-weight:600;margin:0">DL Delay Management (Flask)</h1>
+        <div style="font-size:12px;color:var(--mut)">All times in ns</div>
+      </div>
+    </header>
+    <main class="container">
+      {% block content %}{% endblock %}
+    </main>
+  </body>
+</html>

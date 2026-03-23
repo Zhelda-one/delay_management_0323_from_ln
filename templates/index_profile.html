@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>O-RAN Delay Profile Extractor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .nokia-blue { background-color: #124191; }
+        .nokia-hover:hover { background-color: #0c2d6b; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-7xl">
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-slate-800">📋 O-RAN Delay Profile Extractor</h1>
+                <p class="text-slate-500 mt-1">Extract bandwidth-scs-delay-state from Netconf Logs</p>
+            </div>
+            <a href="/" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition">Back to Dashboard</a>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
+            <div class="flex flex-col md:flex-row gap-4 items-end">
+                <div class="flex-1 w-full">
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Upload Log File (.txt, .log)</label>
+                    <input type="file" id="fileInput" accept=".txt,.log,.xml" 
+                           class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition"/>
+                </div>
+                <button onclick="uploadFile()" class="nokia-blue nokia-hover text-white px-6 py-2 rounded-lg font-medium transition shadow-sm w-full md:w-auto">
+                    Analyze Profile
+                </button>
+                <a href="/profile/clear" class="bg-white border border-gray-300 text-gray-700 px-6 py-2 rounded-lg font-medium hover:bg-gray-50 transition w-full md:w-auto text-center">
+                    Clear
+                </a>
+            </div>
+            <div id="loading" class="hidden mt-4 text-blue-600 text-sm animate-pulse">
+                Processing log file... please wait...
+            </div>
+            {% if error %}
+            <div class="mt-4 p-4 bg-red-50 text-red-700 rounded-lg border border-red-200">
+                <strong>Error:</strong> {{ error }}
+            </div>
+            {% endif %}
+        </div>
+
+        {% if results %}
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+                <h3 class="font-semibold text-slate-700">Extracted Profiles ({{ results|length }})</h3>
+            </div>
+            <div class="p-4 border-b border-slate-100 bg-white">
+                <form action="/profile/export" method="post" class="flex flex-col md:flex-row gap-3 md:items-end">
+                    <div class="w-full md:w-80">
+                        <label for="profile_id" class="block text-sm font-medium text-slate-700 mb-2">Select bandwidth to download (MHz)</label>
+                        <select id="profile_id" name="profile_id" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+                            {% for row in results %}
+                            <option value="{{ row.id }}">{{ row.bandwidth_mhz }} (SCS: {{ row.scs }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="nokia-blue nokia-hover text-white px-5 py-2 rounded-lg font-medium transition shadow-sm w-full md:w-auto">
+                        Download Selected Bandwidth Row (CSV)
+                    </button>
+                </form>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-slate-600">
+                    <thead class="text-xs text-slate-700 uppercase bg-slate-100">
+                        <tr>
+                            <th class="px-4 py-3 border-b">#</th>
+                            <th class="px-4 py-3 border-b">Bandwidth</th>
+                            <th class="px-4 py-3 border-b">SCS</th>
+                            <th class="px-4 py-3 border-b bg-blue-50 text-blue-800">T2a Min Up</th>
+                            <th class="px-4 py-3 border-b bg-blue-50 text-blue-800">T2a Max Up</th>
+                            <th class="px-4 py-3 border-b bg-green-50 text-green-800">T2a Min CP DL</th>
+                            <th class="px-4 py-3 border-b bg-green-50 text-green-800">T2a Max CP DL</th>
+                            <th class="px-4 py-3 border-b">TCP Adv DL</th>
+                            <th class="px-4 py-3 border-b">Ta3 Min</th>
+                            <th class="px-4 py-3 border-b">Ta3 Max</th>
+                            <th class="px-4 py-3 border-b bg-purple-50 text-purple-800">T2a Min CP UL</th>
+                            <th class="px-4 py-3 border-b bg-purple-50 text-purple-800">T2a Max CP UL</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in results %}
+                        <tr class="hover:bg-slate-50 border-b last:border-0 transition">
+                            <td class="px-4 py-3 font-medium">{{ row.id }}</td>
+                            <td class="px-4 py-3 font-bold text-slate-800">{{ row.bandwidth }}</td>
+                            <td class="px-4 py-3">{{ row.scs }}</td>
+                            <td class="px-4 py-3 bg-blue-50/30">{{ row['t2a-min-up'] }}</td>
+                            <td class="px-4 py-3 bg-blue-50/30">{{ row['t2a-max-up'] }}</td>
+                            <td class="px-4 py-3 bg-green-50/30">{{ row['t2a-min-cp-dl'] }}</td>
+                            <td class="px-4 py-3 bg-green-50/30">{{ row['t2a-max-cp-dl'] }}</td>
+                            <td class="px-4 py-3">{{ row['tcp-adv-dl'] }}</td>
+                            <td class="px-4 py-3">{{ row['ta3-min'] }}</td>
+                            <td class="px-4 py-3">{{ row['ta3-max'] }}</td>
+                            <td class="px-4 py-3 bg-purple-50/30 font-semibold">{{ row['t2a-min-cp-ul'] }}</td>
+                            <td class="px-4 py-3 bg-purple-50/30 font-semibold">{{ row['t2a-max-cp-ul'] }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% elif not error %}
+        <div class="text-center py-12 text-slate-400 bg-white rounded-xl border border-dashed border-slate-300">
+            <p>Upload a Netconf log file to view Delay Profiles.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        function uploadFile() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            if (!file) {
+                alert("Please select a file first.");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            document.getElementById('loading').classList.remove('hidden');
+
+            fetch("{{ url_for('profile_analyze') }}", {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert('Error: ' + (data.error || 'Unknown error'));
+                    document.getElementById('loading').classList.add('hidden');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Upload failed.');
+                document.getElementById('loading').classList.add('hidden');
+            });
+        }
+    </script>
+</body>
+</html>
